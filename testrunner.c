@@ -134,8 +134,7 @@ static int invoke_test_with_timelimit(testentry_t* test, int redirect_stdouterr,
    * run a test and update the stats. The main guts of this functionality is provided by invoke_test_with_timelimit
    * This outer wrapper updates thes output and statistics before and after running the test.
    */
-static int
-run_one_test (stats_t * stats, testentry_t * test, int redirect_stdouterr,int argc, char **argv)
+static int run_one_test (stats_t * stats, testentry_t * test, int redirect_stdouterr,int argc, char **argv)
 {
   int test_result;
 
@@ -191,8 +190,7 @@ static void print_targets(testentry_t tests[], int count) {
   /*
    * Main entry point for test harness
    */
-int
-run_testrunner(int argc, char **argv,testentry_t tests[],int test_count)
+int run_testrunner(int argc, char **argv,testentry_t tests[],int test_count)
 {
 	char *test_name, *target;
 	int i;
