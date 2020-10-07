@@ -1,26 +1,22 @@
-  
-/* SMP1: Simple Shell */
 
-/* LIBRARY SECTION */
-#include <ctype.h>              /* Character types                       */
-#include <stdio.h>              /* Standard buffered input/output        */
-#include <stdlib.h>             /* Standard library functions            */
-#include <string.h>             /* String operations                     */
-#include <sys/types.h>          /* Data types                            */
-#include <sys/wait.h>           /* Declarations for waiting              */
-#include <unistd.h>             /* Standard symbolic constants and types */
-
-#include "smp1_tests.h"         /* Built-in test system                  */
+#include <ctype.h>              
+#include <stdio.h>             
+#include <stdlib.h>             
+#include <string.h>           
+#include <sys/types.h>       
+#include <sys/wait.h>           
+#include <unistd.h>             
+#include "smp1_tests.h"        
 
 /* DEFINE SECTION */
-#define SHELL_BUFFER_SIZE 256   /* Size of the Shell input buffer        */
-#define SHELL_MAX_ARGS 8        /* Maximum number of arguments parsed    */
+#define SHELL_BUFFER_SIZE 256   
+#define SHELL_MAX_ARGS 8        
 #define SHELL_MAX_HISTORY 10
 /* VARIABLE SECTION */
-char history[10][SHELL_BUFFER_SIZE];    // BUFFER TO STORE commands
+char history[10][SHELL_BUFFER_SIZE];    // stores commands
 int history_count = 0;
 
-enum{ STATE_SPACE, STATE_NON_SPACE };       /* Parser states */
+enum{ STATE_SPACE, STATE_NON_SPACE };     
 
 void update_history (char *h)
 {
@@ -54,7 +50,7 @@ void imtheparent(pid_t child_pid, int run_in_background)
 {
 	int child_return_val, child_error_code;
 
-	/* fork returned a positive pid so we are the parent */
+	//fork returned a positive pid so we are the parent 
 	
 	fprintf(stderr,
 	        "  Parent says 'child process has been forked with pid=%d'\n",
@@ -66,27 +62,24 @@ void imtheparent(pid_t child_pid, int run_in_background)
 	}
 	// TO-DO P5.4
 	waitpid(child_pid , &child_return_val, run_in_background);
-	/* Use the WEXITSTATUS to extract the status code from the return value */
+	// Use the WEXITSTATUS to extract the status code from the return value 
 	child_error_code = WEXITSTATUS(child_return_val);
 	fprintf(stderr,
 	        "  Parent says 'wait() returned so the child with pid=%d is finished.'\n",
 	        child_pid);
 	if (child_error_code != 0) {
-		/* Error: Child process failed. Most likely a failed exec */
+		
 		fprintf(stderr,
 		        "  Parent says 'Child process %d failed with code %d'\n",
 		        child_pid, child_error_code);
 	}
 }
 
-/* MAIN PROCEDURE SECTION */
 int main(int argc, char **argv)
 {
 	pid_t shell_pid, pid_from_fork;
 	int n_read, i, exec_argc, parser_state, run_in_background;
-	/* buffer: The Shell's input buffer. */
 	char buffer[SHELL_BUFFER_SIZE];
-	/* exec_argv: Arguments passed to exec call including NULL terminator. */
 	char *exec_argv[SHELL_MAX_ARGS + 1];
 	// TO-DO new variables for P5.2, P5.3, P5.6
 	int counter = 0;
@@ -96,30 +89,22 @@ int main(int argc, char **argv)
 	int sub = 1;
 	
 	
-
-	/* Entrypoint for the testrunner program */
 	if (argc > 1 && !strcmp(argv[1], "-test")) {
 		return run_smp1_tests(argc - 1, argv + 1);
 	}
-
-	/* Allow the Shell prompt to display the pid of this process */
 	shell_pid = getpid();
-	counter++;
+	counter++; // count proc
 	while (1) {
-	/* The Shell runs in an infinite loop, processing input. */
-
 		// TO-DO P5.2
+		//add %d and counter to print
 		
 		fprintf(stdout, "Shell(pid=%d)%d> ",shell_pid,counter);
 		fflush(stdout);
 
-		/* Read a line of input. */
+		// reading line
 		if (fgets(buffer, SHELL_BUFFER_SIZE, stdin) == NULL)
 			return EXIT_SUCCESS;
 		n_read = strlen(buffer);
-		
-		
-		
 		
 		if (buffer[0] == '!')
         {
@@ -162,8 +147,6 @@ int main(int argc, char **argv)
         {
           update_history (buffer);
         }
-		
-		
 		
 		run_in_background = n_read > 2 && buffer[n_read - 2] == '&';
 		buffer[n_read - run_in_background - 1] = '\n';
@@ -232,32 +215,26 @@ int main(int argc, char **argv)
 		else {
 			while(exec_argv[0][0] == '!'){
 				int L = (int)(exec_argv[0][1])-48;
-				int loop = 0;
+				int times = 0;
 				if(L < 1 || L > History_Counter-1){
 					fprintf(stderr, "Not valid\n");
 					Not_Valid = 1;
 					break;}
-				/*else if(loop > 9){
-					fprintf(stderr, "Not valid\n");
-					Not_Valid = 1;
-					break;						
-				}*/
 				else{
 					
 					strcpy(exec_argv[0],History[L-1]);
-					loop++;
+					times++;
 				}
 			}
 			if(Not_Valid) {Not_Valid = 0;
 				       continue;} 
 			
 		/* Execute Commands */
-			/* Try replacing 'fork()' with '0'.  What happens? */
+			
 			pid_from_fork = fork();
 			
 			if (pid_from_fork < 0) {
-				/* Error: fork() failed.  Unlikely, but possible (e.g. OS *
-				 * kernel runs out of memory or process descriptors).     */
+				// error for failed
 				fprintf(stderr, "fork failed\n");
 				continue;
 			}
