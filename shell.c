@@ -15,14 +15,39 @@
 #define SHELL_BUFFER_SIZE 256   /* Size of the Shell input buffer        */
 #define SHELL_MAX_ARGS 8        /* Maximum number of arguments parsed    */
 
-/* VARIABLE SECTION */
-enum { STATE_SPACE, STATE_NON_SPACE };	/* Parser states */
+/* VARIABLE SECTION *//
+char history[10][SHELL_BUFFER_SIZE];    // BUFFER TO STORE commands
+int history_count = 0;
 
+/* VARIABLE SECTION */
+enum { STATE_SPACE, STATE_NON_SPACE }; /* Parser states */
+
+void update_history(char *h)
+{
+	int i = 0;
+	if (history_count == SHELL_MAX_HISTORY)
+	{
+		for (i = 0; i < SHELL_MAX_HISTORY - 1; i++)
+		{
+			memset(history[i], 0, SHELL_BUFFER_SIZE);
+			strcpy(history[i], history[i + 1]);
+		}
+		strcpy(history[i], h);
+		return;
+	}
+	else
+	{
+		strcpy(history[history_count], h);
+		history_count++;
+	}
+}
+
+int counter = 1;
 
 int imthechild(const char *path_to_exec, char *const args[])
 {
 	// TO-DO P5.1
-	return execv(path_to_exec, args) ? -1 : 0;
+	return execvp(path_to_exec, args) ? -1 : 0;
 }
 
 void imtheparent(pid_t child_pid, int run_in_background)
@@ -39,7 +64,7 @@ void imtheparent(pid_t child_pid, int run_in_background)
 		return;
 	}
 	// TO-DO P5.4
-	wait(&child_return_val);
+	waitpid(child_pid, &child_return_val, 0);
 	/* Use the WEXITSTATUS to extract the status code from the return value */
 	child_error_code = WEXITSTATUS(child_return_val);
 	fprintf(stderr,
@@ -50,6 +75,10 @@ void imtheparent(pid_t child_pid, int run_in_background)
 		fprintf(stderr,
 		        "  Parent says 'Child process %d failed with code %d'\n",
 		        child_pid, child_error_code);
+	}
+	else
+	{
+		counter = counter + 1;
 	}
 }
 
@@ -76,13 +105,54 @@ int main(int argc, char **argv)
 	/* The Shell runs in an infinite loop, processing input. */
 
 		// TO-DO P5.2
-		fprintf(stdout, "Shell(pid=%d)> ", shell_pid);
+		fprintf(stdout, "Shell(pid=%d)%d> ", shell_pid, counter);
 		fflush(stdout);
 
 		/* Read a line of input. */
 		if (fgets(buffer, SHELL_BUFFER_SIZE, stdin) == NULL)
 			return EXIT_SUCCESS;
 		n_read = strlen(buffer);
+		if (buffer[0] == '!')
+		{
+			if (strlen(buffer) > 2 && strlen(buffer) < 4)
+			{
+				char history_num = buffer[1];
+				int index = 0;
+
+				if (history_num > 48 && history_num < 58)
+				{
+					index = history_num - 48;
+
+					if (index > history_count)
+					{
+						fprintf(stderr, "Not valid\n");
+						continue;
+					}
+					else
+					{
+						char temp[SHELL_BUFFER_SIZE] = "";
+						strcpy(temp, history[index - 1]);
+						memset(buffer, 0, sizeof(buffer));
+						strcpy(buffer, temp);
+						n_read = strlen(buffer);
+					}
+				}
+				else
+				{
+					fprintf(stderr, "Not valid\n");
+					continue;
+				}
+			}
+			else
+			{
+				fprintf(stderr, "Not valid\n");
+				continue;
+			}
+		}
+		else
+		{
+			update_history(buffer);
+		}
 		run_in_background = n_read > 2 && buffer[n_read - 2] == '&';
 		buffer[n_read - run_in_background - 1] = '\n';
 
