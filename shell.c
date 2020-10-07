@@ -16,8 +16,7 @@
 char history[10][SHELL_BUFFER_SIZE];    // BUFFER TO STORE commands
 int history_count = 0;
 
-enum
-{ STATE_SPACE, STATE_NON_SPACE };       /* Parser states */
+enum{ STATE_SPACE, STATE_NON_SPACE };       /* Parser states */
 
 void update_history (char *h)
 {
